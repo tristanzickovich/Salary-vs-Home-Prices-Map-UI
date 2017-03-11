@@ -4,6 +4,11 @@ function geocodeLatLng(geocoder, map, infowindow, coords) {
   var latlng = {lat: parseFloat(latlngStr[0]), lng: parseFloat(latlngStr[1])};
   geocoder.geocode({'location': latlng}, function(results, status) {
     if (status === 'OK') {
+		var addr = results[1].formatted_address;
+      var markerMessage = '<div class="infomsg">'+addr+'</div>';
+      infowindow.setContent(markerMessage);
+		infowindow.setPosition(results[0].geometry.location);
+		infowindow.open(map);
       if (results[1]) {
         var address = results[1].formatted_address;
         updateInfo(address);
@@ -56,7 +61,7 @@ function initMap() {
 
   //if location is submit with button
   document.getElementById('submit').addEventListener('click', function() {
-    geocodeAddress(geocoder, map);
+    geocodeAddress(geocoder, map, infowindow);
     revealBox('infobox');
   });
 
@@ -71,12 +76,17 @@ function initMap() {
 }
 
 //runs if location typed/submitted in search box
-function geocodeAddress(geocoder, resultsMap) {
+function geocodeAddress(geocoder, resultsMap, infowindow) {
   var address = document.getElementById('address').value;
   geocoder.geocode({'address': address}, function(results, status) {
     if (status === 'OK') {
-      resultsMap.setZoom(11);
-      resultsMap.setCenter(results[0].geometry.location);
+      //resultsMap.setZoom(11);
+      //resultsMap.setCenter(results[0].geometry.location);
+      var markerMessage = '<div class="infomsg">'+address+'</div>';
+      infowindow.setContent(markerMessage);
+		infowindow.setPosition(results[0].geometry.location);
+		infowindow.open(resultsMap);
+
       /*var marker = new google.maps.Marker({
         map: resultsMap,
         position: results[0].geometry.location,
@@ -110,3 +120,13 @@ function updateInfo(address){
   elem.innerHTML += "Average Salary: <br/>";
   elem.innerHTML += "Average Home Cost: <br/>";
 }
+/*
+function overlayCoords(){
+	var tmp = [];
+    tmp.push(new google.maps.LatLng(25.774, -80.190));
+    tmp.push(new google.maps.LatLng(18.466, -66.118));
+    tmp.push(new google.maps.LatLng(32.321, -64.757));
+	 
+	return tmp;
+}
+*/
