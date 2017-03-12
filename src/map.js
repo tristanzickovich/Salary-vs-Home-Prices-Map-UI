@@ -4,7 +4,10 @@ function initMap() {
   var map = new google.maps.Map(document.getElementById('map'), {
     zoom: 5,
     center: {lat: 39.8282, lng: -98.5795}, //set to center of U.S.
-    clickableIcons: false //disable clickable landmarks
+    clickableIcons: false, //disable clickable landmarks
+	 maxZoom: 10,
+	 minZoom: 4,
+	 disableDoubleClickZoom: true
   });
 
   //defines geocoder
@@ -12,7 +15,7 @@ function initMap() {
 
   //defines infowindow
   var infowindow = new google.maps.InfoWindow;
-
+  infowindow.open(map);
   //reset map zoom when button clicked
   document.getElementById('resetZoom').addEventListener('click', function() {
     map.setZoom(5);
@@ -45,7 +48,7 @@ function overlayCounties(infowindow, map, ctyname, state, ctycoords){
 
 	//content displayed inside info bubble
 	var message = '<div id="ctymsg">'+ctyname+' '+state+'</div>';
-	//parseed boundary coordinates for polygon
+	//parsed boundary coordinates for polygon
 	var countyCoords = overlayCoords(ctycoords);
 
 	// Construct the polygon of county
@@ -62,9 +65,18 @@ function overlayCounties(infowindow, map, ctyname, state, ctycoords){
 	county.setMap(map);
 
 	//if cursor hovers over county overlay
-	google.maps.event.addListener(county, 'mouseover', function(event) {
+	google.maps.event.addListener(county, 'mousemove', function(event) {
 		//make county overlay visible
 		county.setOptions({fillOpacity: 0.35, strokeOpacity: 0.8}); 
+
+		//caclulates location for infoWindow based on click location
+		var coords = retrieveCoordinates(event.latLng);
+		var latlngStr = coords.split(',', 2);
+	   var latlng = {lat: parseFloat(latlngStr[0])+markerOffset(map), lng: parseFloat(latlngStr[1])};
+
+		//sets infowindow message and position
+		infowindow.setContent(message);
+		infowindow.setPosition(latlng);
 	});
 
 	//if cursor leaves county overlay
@@ -72,19 +84,16 @@ function overlayCounties(infowindow, map, ctyname, state, ctycoords){
 		//make county overlay invisible
 		county.setOptions({fillOpacity: 0, strokeOpacity: 0}); 
 	});
+}
 
-	//if click county overlay 
-   google.maps.event.addListener(county, 'click', function(event) {
-		//caclulates location for infoWindow based on click location
-		var coords = retrieveCoordinates(event.latLng);
-		var latlngStr = coords.split(',', 2);
-	   var latlng = {lat: parseFloat(latlngStr[0]), lng: parseFloat(latlngStr[1])};
-		
-		//sets info window message, position, and displays on map
-		infowindow.setContent(message);
-		infowindow.setPosition(latlng);
-		infowindow.open(map);
-   });
+function markerOffset(map){
+	var zoom = map.getZoom();
+	var mult = 1;
+	if(zoom > 8) mult = 2;
+	else if(zoom > 6) mult = 1.1;
+	else if(zoom > 5) mult = .7;
+	else mult = .5;
+	return (1/(zoom * mult));
 }
 
 //sends each county info to overlayCounties() to be drawn
