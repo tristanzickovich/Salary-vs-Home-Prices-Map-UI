@@ -16,27 +16,26 @@ function initMap() {
   //defines infowindow
   var infowindow = new google.maps.InfoWindow;
   infowindow.open(map);
+
   //reset map zoom when button clicked
   document.getElementById('resetZoom').addEventListener('click', function() {
     map.setZoom(5);
     map.setCenter({lat: 39.8282, lng: -98.5795});
   });
 
-  //CURRENTLY NOT USED BECAUSE OF OVERLAYS 
+  //CURRENTLY NOT USED WITH OVERLAYS 
   //if map clicked, display info for location clicked
   google.maps.event.addListener(map, 'click', function(event) {
     var useMouse = document.getElementById("mouseLocEnable").checked;
     if(useMouse){
       var coords = retrieveCoordinates(event.latLng);
       geocodeLatLng(geocoder, map, infowindow, coords);
-      revealBox('infobox');
     } 
   });
 
   //if location is submit with button, displays info
   document.getElementById('submit').addEventListener('click', function() {
     geocodeAddress(geocoder, map, infowindow);
-    revealBox('infobox');
   });
 
   //enables overlay counties & functionality
@@ -44,10 +43,10 @@ function initMap() {
 }
 
 //creates/controls each individual county overlay
-function overlayCounties(infowindow, map, ctyname, state, ctycoords){
+function overlayCounties(infowindow, map, ctyname, state, ctycoords, ctyMedian, stateSalary, stateHome){
 
 	//content displayed inside info bubble
-	var message = '<div id="ctymsg">'+ctyname+' '+state+'</div>';
+	var message = '<div id="ctymsg">County: '+ctyname+' <br>State: '+state+' <br>Median Salary: $'+ctyMedian+'</div>';
 	//parsed boundary coordinates for polygon
 	var countyCoords = overlayCoords(ctycoords);
 
@@ -64,25 +63,38 @@ function overlayCounties(infowindow, map, ctyname, state, ctycoords){
 	//draws county overlay on map
 	county.setMap(map);
 
+   //if cursor enters county overlay, update state box 
+	google.maps.event.addListener(county, 'mousemove', function(event) {
+      var useMouse = document.getElementById("mouseLocEnable").checked;
+      if(useMouse)
+         updateInfo(state, stateSalary, stateHome);
+	});
+
+
 	//if cursor hovers over county overlay
 	google.maps.event.addListener(county, 'mousemove', function(event) {
-		//make county overlay visible
-		county.setOptions({fillOpacity: 0.35, strokeOpacity: 0.8}); 
+      var useMouse = document.getElementById("mouseLocEnable").checked;
+      if(useMouse){
+         //make county overlay visible
+         county.setOptions({fillOpacity: 0.35, strokeOpacity: 0.8}); 
 
-		//caclulates location for infoWindow based on click location
-		var coords = retrieveCoordinates(event.latLng);
-		var latlngStr = coords.split(',', 2);
-	   var latlng = {lat: parseFloat(latlngStr[0])+markerOffset(map), lng: parseFloat(latlngStr[1])};
+         //caclulates location for infoWindow based on click location
+         var coords = retrieveCoordinates(event.latLng);
+         var latlngStr = coords.split(',', 2);
+         var latlng = {lat: parseFloat(latlngStr[0])+markerOffset(map), lng: parseFloat(latlngStr[1])};
 
-		//sets infowindow message and position
-		infowindow.setContent(message);
-		infowindow.setPosition(latlng);
+         //sets infowindow message and position
+         infowindow.setContent(message);
+         infowindow.setPosition(latlng);
+      }
 	});
 
 	//if cursor leaves county overlay
 	google.maps.event.addListener(county, 'mouseout', function() {
 		//make county overlay invisible
-		county.setOptions({fillOpacity: 0, strokeOpacity: 0}); 
+      var useMouse = document.getElementById("mouseLocEnable").checked;
+      if(useMouse)
+         county.setOptions({fillOpacity: 0, strokeOpacity: 0}); 
 	});
 }
 
@@ -99,7 +111,7 @@ function markerOffset(map){
 //sends each county info to overlayCounties() to be drawn
 function parseCounties(infowindow, map){
 	//reads county outline lat/long data
-	var file = "./cutcounty.json";
+	var file = "./finaldeal.json";
 	var rawFile = new XMLHttpRequest(), json;
 	rawFile.onreadystatechange = function ()
 	{
@@ -109,11 +121,14 @@ function parseCounties(infowindow, map){
 			{
 				//parses string, sends county name, stat, and county coords to be drawn: all counties
 				json = JSON.parse(rawFile.responseText);
-				for(var i = 1;i < json.length; ++i){
-					var countyName = json[i].FIELD1;
-					var state = json[i].FIELD2;
-					var coords = json[i].FIELD3;
-					overlayCounties(infowindow, map, countyName, state, coords);	
+				for(var i = 0;i < json.length; ++i){
+					var countyName = json[i].county;
+					var countyMedian= json[i].medianSalary;
+					var state = json[i].state;
+					var coords = json[i].geometry;
+					var stateSalary = json[i].medianSalary;
+					var stateHome = json[i].avgHomePrice;
+               overlayCounties(infowindow, map, countyName, state, coords, countyMedian, stateSalary, stateHome);	
 				}
 			}
 		 }
@@ -134,7 +149,7 @@ function overlayCoords(curLatLng){
 	return bounds;
 }
 
-//CURRENTLY DOESN'T GET USED BECAUSE OF OVERLAYS
+//CURRENTLY NOT USED WITH OVERLAYS
 //shows info based on location clicked on map
 function geocodeLatLng(geocoder, map, infowindow, coords) {
   var latlngStr = coords.split(',', 2);
@@ -155,8 +170,6 @@ function geocodeLatLng(geocoder, map, infowindow, coords) {
 			infowindow.setPosition(results[0].geometry.location);
 			infowindow.open(map);
 			
-			//sends info to info box	
-			updateInfo(addr);
       } else {
         window.alert('No results found');
       }
@@ -171,13 +184,8 @@ function geocodeAddress(geocoder, resultsMap, infowindow) {
   var address = document.getElementById('address').value;
   geocoder.geocode({'address': address}, function(results, status) {
     if (status === 'OK') {
-      //resultsMap.setZoom(11);
-      //resultsMap.setCenter(results[0].geometry.location);
-      var markerMessage = '<div class="infomsg">'+address+'</div>';
-      infowindow.setContent(markerMessage);
-		infowindow.setPosition(results[0].geometry.location);
-		infowindow.open(resultsMap);
-      updateInfo(address);
+      resultsMap.setZoom(10);
+      resultsMap.setCenter(results[0].geometry.location);
     }
 	 else {
       alert('Geocode was not successful for the following reason: ' + status);
@@ -195,10 +203,12 @@ function retrieveCoordinates(pnt) {
 }
 
 //updates infobox data displayed
-function updateInfo(address){
-  var elem = document.getElementById('changingInfo');
-  elem.innerHTML = "Salary & Housing Data For " + address + "<br>";
-  elem.innerHTML += "Average Salary: <br/>";
-  elem.innerHTML += "Average Home Cost: <br/>";
+function updateInfo(state, medSalary, avgHomeCost){
+  var curState = document.getElementById('state');
+  var curStateSalary = document.getElementById('stateSalary');
+  var curStateHomeCost = document.getElementById('stateHomeCost');
+  curState.innerHTML = "Housing and Salary data for " + state;
+  curStateSalary.innerHTML = "$" + medSalary;
+  curStateHomeCost.innerHTML = "$" + avgHomeCost;
 }
 
