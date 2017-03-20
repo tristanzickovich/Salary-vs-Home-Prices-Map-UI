@@ -133,7 +133,7 @@ function parseCounties(infowindow, map){
                var countyHome = json[i].countyHomePrice;
 					var state = json[i].state;
 					var coords = json[i].geometry;
-					var stateSalary = json[i].medianSalary;
+					var stateSalary = json[i].avgStateSalary;
 					var stateHome = json[i].avgHomePrice;
                overlayCounties(infowindow, map, countyName, state, coords, countySalary, stateSalary, stateHome, countyHome);	
 				}
