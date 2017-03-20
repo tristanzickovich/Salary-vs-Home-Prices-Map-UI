@@ -2,6 +2,8 @@
   <head>
     <title>Salary & Home Prices</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+	<script src="https://npmcdn.com/bootstrap@4.0.0-alpha.5/dist/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
@@ -28,6 +30,13 @@
         <input type="checkbox" name="useMouseCoords" id="mouseLocEnable" checked> Use Mouse Pointer</input>
         </div>
       </div>
+      <div id="color-scale"></div>
+      <div id="clabel" >
+         <div class="colorinfo" data-toggle="tooltip" data-placement="left" title="<strong><u>Color Scale</u></strong><br><em>blue</em> = missing data<br><em>green</em> = most affordable<br><em>red</em> = least affordable">
+         <strong>affordability scale</strong>
+         </div>
+      </div>
+
       <div id="showinfobox" class="hidden">
         <input type="button" value="show state info" id="showStateInfo" class="btn btn-primary" onclick="revealBox('infobox'); hideBox('showinfobox');"></input>
       </div>
@@ -38,7 +47,7 @@
         <div id="changingInfo">
 			<table class="table">
             <tr>
-               <th id="state">State Info</th>
+               <th id="state" colspan="2">State Info</th>
             </tr>
            <tr>
                <td>Average Salary</td>
@@ -56,8 +65,13 @@
       <div id="state"></div>
       <div id="ctycoords"></div>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=APIKEYHERE&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKA23rhJflpJuTo_vEydWjjx1p6kWaWKo&callback=initMap">
     </script>
     <script src="dragBox.js"></script>
+    <script>
+    $(document).ready(function(){
+       $('[data-toggle=tooltip]').tooltip({html:true});
+    });
+   </script>
   </body>
 </html> 

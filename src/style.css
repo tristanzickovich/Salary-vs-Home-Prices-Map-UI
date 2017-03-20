@@ -12,6 +12,30 @@ body {
    margin: 5px;
 }
 
+#color-scale {
+  border-radius: 7px;
+  position: absolute;
+  right: 10px;
+  top: 25%;
+  z-index: 7;
+  width: 30px;
+  height: 300px;
+  background: linear-gradient(to top, #ff0000   0%,#FF8800 20%,#fcfc00 45%,#F6FF00 65%,#00d100 90%,#00fcfc 100%);
+}
+
+#clabel{
+  border-radius: 7px;
+  position: absolute;
+  right: 40px;
+  top: 30%;
+  z-index: 7;
+  transform: rotate(270deg);
+  transform-origin: 99% 120%;
+  text-align: center;
+  background-color: rgb(255,255,255);
+  padding: 5px;
+}
+
 #floating-panel {
   position: absolute;
   top: 10px;
@@ -31,13 +55,13 @@ body {
 	position: absolute;
    bottom: 10px;	
 	left: 10px;
-	z-index: 5;
+	z-index: 10;
 	background-color: #fff;
 	padding: 5px;
 	border: 1px solid black;
 	text-align: left;
    width: 300px;
-   height: 190px;
+   height: 170px;
    border-radius: 7px;
 }
 

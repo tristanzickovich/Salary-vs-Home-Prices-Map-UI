@@ -43,20 +43,26 @@ function initMap() {
 }
 
 //creates/controls each individual county overlay
-function overlayCounties(infowindow, map, ctyname, state, ctycoords, ctyMedian, stateSalary, stateHome){
-
+function overlayCounties(infowindow, map, ctyname, state, ctycoords, ctySalary, stateSalary, stateHome, countyHome){
 	//content displayed inside info bubble
-	var message = '<div id="ctymsg">County: '+ctyname+' <br>State: '+state+' <br>Median Salary: $'+ctyMedian+'</div>';
+	var message = '<div id="ctymsg"><strong><u>County Data</u></strong><br>County: '+ctyname+', '+state+' <br>Median Salary: $'+ctySalary+'<br>Home Cost: $'+countyHome+'</div>';
+
+	//swith state abbreviation to full name
+	state = abbrState(state);
+
 	//parsed boundary coordinates for polygon
 	var countyCoords = overlayCoords(ctycoords);
+   
+	//caclulate color for overlay
+   var color = calcAffordability(ctySalary, countyHome);
 
 	// Construct the polygon of county
 	var county = new google.maps.Polygon({
 	  paths: countyCoords,
-	  strokeColor: '#FF0000',
+	  strokeColor: color,
 	  strokeOpacity: 0,
 	  strokeWeight: 2,
-	  fillColor: '#FF0000',
+	  fillColor: color,
 	  fillOpacity: 0
 	});
 
@@ -111,7 +117,7 @@ function markerOffset(map){
 //sends each county info to overlayCounties() to be drawn
 function parseCounties(infowindow, map){
 	//reads county outline lat/long data
-	var file = "./finaldeal.json";
+	var file = "./finalfile.json";
 	var rawFile = new XMLHttpRequest(), json;
 	rawFile.onreadystatechange = function ()
 	{
@@ -123,30 +129,19 @@ function parseCounties(infowindow, map){
 				json = JSON.parse(rawFile.responseText);
 				for(var i = 0;i < json.length; ++i){
 					var countyName = json[i].county;
-					var countyMedian= json[i].medianSalary;
+					var countySalary= json[i].medianSalary;
+               var countyHome = json[i].countyHomePrice;
 					var state = json[i].state;
 					var coords = json[i].geometry;
 					var stateSalary = json[i].medianSalary;
 					var stateHome = json[i].avgHomePrice;
-               overlayCounties(infowindow, map, countyName, state, coords, countyMedian, stateSalary, stateHome);	
+               overlayCounties(infowindow, map, countyName, state, coords, countySalary, stateSalary, stateHome, countyHome);	
 				}
 			}
 		 }
 	};
 	rawFile.open("GET", file, true);
 	rawFile.send();
-}
-
-//formats county lat/long for google maps polygon outline
-function overlayCoords(curLatLng){
-	var indexed = curLatLng.split(" ");	
-	var bounds = [];
-	for(var i = 0; i < indexed.length; ++i){
-		var c = indexed[i].split(",");
-		console.log(c);
-		bounds.push(new google.maps.LatLng(c[1], c[0]));
-	}
-	return bounds;
 }
 
 //CURRENTLY NOT USED WITH OVERLAYS
@@ -193,6 +188,41 @@ function geocodeAddress(geocoder, resultsMap, infowindow) {
   });
 }
 
+//******** Helper Functions ********//
+
+//formats county lat/long for google maps polygon outline
+function overlayCoords(curLatLng){
+	var indexed = curLatLng.split(" ");	
+	var bounds = [];
+	for(var i = 0; i < indexed.length; ++i){
+		var c = indexed[i].split(",");
+		console.log(c);
+		bounds.push(new google.maps.LatLng(c[1], c[0]));
+	}
+	return bounds;
+}
+
+//chooses color based on salary to home comparison
+function calcAffordability(salary, home){
+   if(isNaN(salary) || isNaN(home))
+      return '#1FEAED';
+   else if((salary * 2.5) > home){
+      return '#26F70A';
+   }
+   else if((salary * 3) > home){
+      return '#C8F70A';
+   }
+   else if((salary * 3.5) > home){
+      return '#FFFF12';
+   }
+   else if((salary * 4) > home){
+      return '#FFA600';
+   }
+   else{
+      return '#FF0011';
+   }
+}
+
 //returns mouse coords
 function retrieveCoordinates(pnt) {
     var lat = pnt.lat();
@@ -207,8 +237,71 @@ function updateInfo(state, medSalary, avgHomeCost){
   var curState = document.getElementById('state');
   var curStateSalary = document.getElementById('stateSalary');
   var curStateHomeCost = document.getElementById('stateHomeCost');
-  curState.innerHTML = "Housing and Salary data for " + state;
+  curState.innerHTML = "State Data: " + state;
   curStateSalary.innerHTML = "$" + medSalary;
   curStateHomeCost.innerHTML = "$" + avgHomeCost;
 }
 
+function abbrState(input){
+    var states = [
+        ['Arizona', 'AZ'],
+        ['Alabama', 'AL'],
+        ['Alaska', 'AK'],
+        ['Arizona', 'AZ'],
+        ['Arkansas', 'AR'],
+        ['California', 'CA'],
+        ['Colorado', 'CO'],
+        ['Connecticut', 'CT'],
+        ['Delaware', 'DE'],
+        ['Florida', 'FL'],
+        ['Georgia', 'GA'],
+        ['Hawaii', 'HI'],
+        ['Idaho', 'ID'],
+        ['Illinois', 'IL'],
+        ['Indiana', 'IN'],
+        ['Iowa', 'IA'],
+        ['Kansas', 'KS'],
+        ['Kentucky', 'KY'],
+        ['Kentucky', 'KY'],
+        ['Louisiana', 'LA'],
+        ['Maine', 'ME'],
+        ['Maryland', 'MD'],
+        ['Massachusetts', 'MA'],
+        ['Michigan', 'MI'],
+        ['Minnesota', 'MN'],
+        ['Mississippi', 'MS'],
+        ['Missouri', 'MO'],
+        ['Montana', 'MT'],
+        ['Nebraska', 'NE'],
+        ['Nevada', 'NV'],
+        ['New Hampshire', 'NH'],
+        ['New Jersey', 'NJ'],
+        ['New Mexico', 'NM'],
+        ['New York', 'NY'],
+        ['North Carolina', 'NC'],
+        ['North Dakota', 'ND'],
+        ['Ohio', 'OH'],
+        ['Oklahoma', 'OK'],
+        ['Oregon', 'OR'],
+        ['Pennsylvania', 'PA'],
+        ['Rhode Island', 'RI'],
+        ['South Carolina', 'SC'],
+        ['South Dakota', 'SD'],
+        ['Tennessee', 'TN'],
+        ['Texas', 'TX'],
+        ['Utah', 'UT'],
+        ['Vermont', 'VT'],
+        ['Virginia', 'VA'],
+        ['Washington', 'WA'],
+        ['West Virginia', 'WV'],
+        ['Wisconsin', 'WI'],
+        ['Wyoming', 'WY'],
+    ];
+
+	  input = input.toUpperCase();
+	  for(i = 0; i < states.length; i++){
+			if(states[i][1] == input){
+				 return(states[i][0]);
+			}
+	  }    
+}
