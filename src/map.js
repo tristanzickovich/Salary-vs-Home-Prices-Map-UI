@@ -44,8 +44,13 @@ function initMap() {
 
 //creates/controls each individual county overlay
 function overlayCounties(infowindow, map, ctyname, state, ctycoords, ctySalary, stateSalary, stateHome, countyHome){
+   var salary = ctySalary; var home = countyHome; 
+   if(isNaN(ctySalary))
+      salary = stateSalary+'*';
+   if(isNaN(countyHome))
+      home = stateHome+'*';
 	//content displayed inside info bubble
-	var message = '<div id="ctymsg"><strong><u>County Data</u></strong><br>County: '+ctyname+', '+state+' <br>Median Salary: $'+ctySalary+'<br>Home Cost: $'+countyHome+'</div>';
+	var message = '<div id="ctymsg"><strong><u>County Data</u></strong><br>County: '+ctyname+', '+state+' <br>Median Salary: $'+salary+'<br>Home Cost: $'+home+'</div>';
 
 	//swith state abbreviation to full name
 	state = abbrState(state);

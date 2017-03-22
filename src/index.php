@@ -32,7 +32,7 @@
       </div>
       <div id="color-scale"></div>
       <div id="clabel" >
-         <div class="colorinfo" data-toggle="tooltip" data-placement="left" title="<strong><u>Color Scale</u></strong><br><em>blue</em> = missing data<br><em>green</em> = most affordable<br><em>red</em> = least affordable">
+         <div class="colorinfo" data-toggle="tooltip" data-placement="left" title="<strong><u>Color Scale</u></strong><br><em>blue</em> = missing county data<br><em>green</em> = most affordable<br><em>red</em> = least affordable">
          <strong>affordability scale</strong>
          </div>
       </div>
